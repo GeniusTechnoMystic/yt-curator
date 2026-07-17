@@ -67,10 +67,17 @@ def get_db_path(db_dir: Path | None = None) -> Path:
     return db_dir / "inventory.db"
 
 
-def open_db(db_path: Path | None = None) -> sqlite3.Connection:
-    """Open (and initialise) the inventory database."""
+def open_db(db_path: str | Path | None = None) -> sqlite3.Connection:
+    """Open (and initialise) the inventory database.
+
+    Args:
+        db_path: Path to the database file. Can be a string, Path, or None
+            (defaults to ``~/.config/yt-curator/inventory.db``).
+    """
     if db_path is None:
         db_path = get_db_path()
+    else:
+        db_path = Path(db_path)
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")

@@ -17,7 +17,7 @@ class Curator:
     """High-level curation operations backed by the YouTube API + local DB."""
 
     def __init__(self, client: YouTubeClient | None = None,
-                 db_path: Path | None = None) -> None:
+                 db_path: str | Path | None = None) -> None:
         self._client = client
         self.db_path = db_path
         self._log: list[CurationAction] = []

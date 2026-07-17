@@ -17,7 +17,7 @@ from yt_curator.core.models import Playlist, PlaylistVideo, ScanReport
 from yt_curator.db.schema import open_db
 
 
-def scan_all(client: YouTubeClient, db_path: Path | None = None) -> ScanReport:
+def scan_all(client: YouTubeClient, db_path: str | Path | None = None) -> ScanReport:
     """Full inventory scan: all playlists → all items → video status.
 
     Returns a ScanReport with counts and duplicate info.
