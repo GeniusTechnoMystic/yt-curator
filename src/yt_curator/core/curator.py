@@ -5,7 +5,6 @@ All destructive operations support ``dry_run=True`` which logs what *would*
 happen without executing anything.
 """
 
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -19,10 +18,27 @@ class Curator:
 
     def __init__(self, client: YouTubeClient | None = None,
                  db_path: Path | None = None) -> None:
-        self.client = client or YouTubeClient(read_only=False)
+        self._client = client
         self.db_path = db_path
         self._log: list[CurationAction] = []
         self._conn = open_db(db_path) if db_path else None
+
+    @property
+    def client(self) -> YouTubeClient:
+        """Lazy YouTubeClient — only created when needed (i.e. not for dry-runs or reports)."""
+        if self._client is None:
+            self._client = YouTubeClient(read_only=False)
+        return self._client
+
+    @client.setter
+    def client(self, value: YouTubeClient) -> None:
+        self._client = value
+
+    def close(self) -> None:
+        """Close the database connection explicitly."""
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
 
     # ── Connection helper ──────────────────────────────────────
 
@@ -32,6 +48,15 @@ class Curator:
         return self._conn
 
     # ── Reporting ──────────────────────────────────────────────
+
+    def get_playlist_summary(self, playlist_id: str) -> dict | None:
+        """Get a playlist's title and video count from the local DB."""
+        db = self._db()
+        row = db.execute(
+            "SELECT id, title, video_count, privacy FROM playlists WHERE id=?",
+            (playlist_id,),
+        ).fetchone()
+        return dict(row) if row else None
 
     def get_report(self) -> dict:
         """Generate a summary report from the DB."""

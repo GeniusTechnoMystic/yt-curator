@@ -282,10 +282,7 @@ def dedup(playlist_id: str, db: Path | None, dry_run: bool):
 def delete(playlist_id: str, db: Path | None, force: bool, dry_run: bool):
     """Delete a playlist and all its contents."""
     cur = Curator(db_path=db)
-    pl = cur._db().execute(
-        "SELECT title, video_count FROM playlists WHERE id=?",
-        (playlist_id,),
-    ).fetchone()
+    pl = cur.get_playlist_summary(playlist_id)
 
     if pl:
         console.print(f"Playlist: [bold]{pl['title']}[/bold] ({pl['video_count']} videos)")

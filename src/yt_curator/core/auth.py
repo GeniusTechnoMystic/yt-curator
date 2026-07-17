@@ -103,12 +103,17 @@ def _save_token(creds: Credentials) -> None:
     TOKEN_FILE.chmod(0o600)
 
 
-def has_valid_token() -> bool:
-    """Check if a usable OAuth token exists without triggering a flow."""
+def has_valid_token(read_only: bool = False) -> bool:
+    """Check if a usable OAuth token exists without triggering a flow.
+
+    Args:
+        read_only: If True, checks for a token with at least read-only scope.
+    """
     if not TOKEN_FILE.exists():
         return False
     try:
-        creds = Credentials.from_authorized_user_file(str(TOKEN_FILE), SCOPES)
+        scopes = SCOPES_READONLY if read_only else SCOPES
+        creds = Credentials.from_authorized_user_file(str(TOKEN_FILE), scopes)
         return creds.valid or (creds.expired and creds.refresh_token is not None)
     except Exception:
         return False

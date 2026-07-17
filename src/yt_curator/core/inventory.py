@@ -5,8 +5,10 @@ Orchestrates the YouTube API calls to enumerate every playlist and
 every video, then persists into the local DB for offline curation.
 """
 
-import time
+import logging
 from datetime import datetime
+
+logger = logging.getLogger("yt-curator.inventory")
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +26,7 @@ def scan_all(client: YouTubeClient, db_path: Path | None = None) -> ScanReport:
     report = ScanReport()
 
     # ── 1. Fetch all playlists ──
-    print("Fetching all playlists...")
+    logger.info("Fetching all playlists...")
     raw_playlists = client.list_my_playlists()
     report.total_playlists = len(raw_playlists)
 
@@ -32,7 +34,7 @@ def scan_all(client: YouTubeClient, db_path: Path | None = None) -> ScanReport:
         _upsert_playlist(conn, item)
 
     # ── 2. Fetch all playlist items ──
-    print(f"Fetching items for {len(raw_playlists)} playlists...")
+    logger.info("Fetching items for %d playlists...", len(raw_playlists))
     all_video_ids: set[str] = set()
     cursor = conn.execute("SELECT id FROM playlists")
     playlist_rows = cursor.fetchall()
@@ -58,11 +60,11 @@ def scan_all(client: YouTubeClient, db_path: Path | None = None) -> ScanReport:
         )
 
         if (idx + 1) % 50 == 0:
-            print(f"  ... scanned {idx + 1}/{len(playlist_rows)} playlists")
+            logger.info("  ... scanned %d/%d playlists", idx + 1, len(playlist_rows))
             conn.commit()
 
     conn.commit()
-    print(f"  ... scanned {len(playlist_rows)} playlists total")
+    logger.info("  ... scanned %d playlists total", len(playlist_rows))
 
     # ── 3. Check video status ──
     report = _check_video_statuses(client, conn, report, list(all_video_ids))
@@ -105,8 +107,8 @@ def _upsert_playlist(conn: Any, item: dict) -> None:
             cd.get("itemCount", 0),
             sid.get("channelId", ""),
             sid.get("channelTitle", ""),
-            sid.get("publishedAt", ""),
-            cd.get("videoPublishedAt", ""),
+            sid.get("publishedAt", ""),      # created_at: playlist snippet.publishedAt
+            sid.get("publishedAt", ""),      # updated_at: playlists only have publishedAt, not separate updatedAt
             item.get("etag", ""),
         ),
     )
@@ -151,7 +153,7 @@ def _check_video_statuses(
     client: YouTubeClient, conn: Any, report: ScanReport, video_ids: list[str]
 ) -> ScanReport:
     """Batch-check video status and update the DB."""
-    print(f"Checking status for {len(video_ids)} videos...")
+    logger.info("Checking status for %d videos...", len(video_ids))
 
     if not video_ids:
         return report
@@ -162,19 +164,30 @@ def _check_video_statuses(
         details = client.get_video_details(chunk)
         found_ids = {d["id"] for d in details}
 
-        # Videos returned by API are live
+        # Check actual status for returned videos (live, private, blocked)
         for d in details:
             vid = d["id"]
             dur_sec = _parse_duration(
                 d.get("contentDetails", {}).get("duration", "PT0S")
             )
-            report.live_videos += 1
+            vstatus = d.get("status", {})
+            privacy = vstatus.get("privacyStatus", "public")
+            upload_status = vstatus.get("uploadStatus", "processed")
+            if privacy == "private":
+                actual_status = "private"
+                report.private_videos += 1
+            elif upload_status == "rejected":
+                actual_status = "blocked"
+                report.blocked_videos += 1
+            else:
+                actual_status = "live"
+                report.live_videos += 1
             conn.execute(
-                "UPDATE playlist_videos SET status='live', duration_seconds=? WHERE video_id=?",
-                (dur_sec, vid),
+                "UPDATE playlist_videos SET status=?, duration_seconds=? WHERE video_id=?",
+                (actual_status, dur_sec, vid),
             )
 
-        # Videos NOT returned are deleted, private, or blocked
+        # Videos NOT returned by the API are genuinely deleted
         missing = set(chunk) - found_ids
         for vid in missing:
             report.deleted_videos += 1
@@ -184,7 +197,7 @@ def _check_video_statuses(
             )
 
         if (i + batch_size) % 500 == 0:
-            print(f"  ... checked {min(i + batch_size, len(video_ids))}/{len(video_ids)}")
+            logger.info("  ... checked %d/%d videos", min(i + batch_size, len(video_ids)), len(video_ids))
             conn.commit()
 
     conn.commit()

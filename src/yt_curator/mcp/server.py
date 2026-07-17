@@ -389,25 +389,23 @@ def auth_status() -> str:
 
 # ── Server runner ──────────────────────────────────────────────
 
-def run_server(host: str = "127.0.0.1", port: int = 39401) -> None:
-    """Start the MCP server."""
-    if "--help" in sys.argv or "-h" in sys.argv:
-        print(
-            "yt-curator MCP server\n\n"
-            "Usage:\n"
-            "  yt-curator serve-mcp              # stdio mode (default)\n"
-            "  yt-curator serve-mcp --host 0.0.0.0 --port 39401  # SSE mode\n\n"
-            "When run via `yt-curator serve-mcp`, the CLI handles argument parsing.\n"
-            "The `yt-curator-mcp` console script always runs in stdio mode.\n"
-        )
-        return
+def run_server(host: str = "127.0.0.1", port: int = 39401, 
+               transport: str | None = None) -> None:
+    """Start the MCP server.
 
-    # SSE mode: host or port provided (from CLI parsing)
-    if "--host" in sys.argv or "--port" in sys.argv:
+    Args:
+        host: Bind address (SSE mode only).
+        port: Port (SSE mode only).
+        transport: ``"sse"`` for SSE, ``"stdio"`` for stdio, or ``None`` to auto-detect
+            (SSE if host/port differ from defaults, stdio otherwise).
+    """
+    if transport is None:
+        transport = "sse" if host != "127.0.0.1" or port != 39401 else "stdio"
+
+    if transport == "sse":
         print(f"Starting yt-curator MCP server on {host}:{port}", file=sys.stderr)
         mcp.run(transport="sse", host=host, port=port)
     else:
-        # stdio mode — for Claude Desktop, Hermes, etc.
         mcp.run(transport="stdio")
 
 
