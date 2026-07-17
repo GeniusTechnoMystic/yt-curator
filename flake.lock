@@ -1,0 +1,97 @@
+{
+  "nodes": {
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5FjepMkSdMCX3T3m8O0I3B94Dw0Qo7l5N1g0I=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1735554305,
+        "narHash": "sha256-zEx1sU4gO35lF5H1O/qsnN1d3vYqHf4S5C8Y1Yx0Rg=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "82e77f3e27e0e0d8a0e0f0e0f0e0f0e0f0e0f0e0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "pyproject-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1735266721,
+        "narHash": "sha256-RbBz0k0X2Wc3e0WU8TQ6KQ1G1X0X0X0X0X0X0X0X0=",
+        "owner": "nix-community",
+        "repo": "pyproject.nix",
+        "rev": "c2ca5c5c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "pyproject.nix",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mC768=",
+        "owner": "nix-systems",
+        "repo": "systems",
+        "rev": "da16896a7b8d7d3d3d3d3d3d3d3d3d3d3d3d3d3d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "systems",
+        "type": "github"
+      }
+    },
+    "uv2nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "pyproject-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1735323456,
+        "narHash": "sha256-c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0=",
+        "owner": "nix-community",
+        "repo": "uv2nix",
+        "rev": "d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "uv2nix",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

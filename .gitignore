@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual env
+.venv/
+
+# uv
+uv.lock
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# yt-curator runtime
+*.db
+token.json
+client_secret.json
+api_key.txt
