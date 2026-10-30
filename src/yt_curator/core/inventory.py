@@ -187,12 +187,12 @@ def _check_video_statuses(
                 (actual_status, dur_sec, vid),
             )
 
-        # Videos NOT returned by the API are genuinely deleted
+        # Omission does not establish why a video is inaccessible.
         missing = set(chunk) - found_ids
         for vid in missing:
-            report.deleted_videos += 1
+            report.unknown_videos += 1
             conn.execute(
-                "UPDATE playlist_videos SET status='deleted' WHERE video_id=?",
+                "UPDATE playlist_videos SET status='unknown' WHERE video_id=?",
                 (vid,),
             )
 

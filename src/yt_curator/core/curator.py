@@ -156,7 +156,7 @@ class Curator:
     # ── Destructive operations ─────────────────────────────────
 
     def delete_playlist(self, playlist_id: str,
-                         dry_run: bool = False) -> CurationAction:
+                         dry_run: bool = True) -> CurationAction:
         """Delete a playlist and all its items from the DB + YouTube."""
         db = self._db()
         pl = db.execute("SELECT title FROM playlists WHERE id=?",
@@ -180,12 +180,15 @@ class Curator:
         return action
 
     def merge_playlists(self, source_id: str, target_id: str,
-                         dry_run: bool = False) -> list[CurationAction]:
+                         dry_run: bool = True) -> list[CurationAction]:
         """Move all videos from source playlist into target, then delete source.
 
         Skips videos already present in the target (by video_id).
         Returns a list of actions performed.
         """
+        if source_id == target_id:
+            raise ValueError("Source and target playlists must differ")
+
         actions: list[CurationAction] = []
         db = self._db()
 
@@ -245,7 +248,7 @@ class Curator:
         actions.append(action)
         return actions
 
-    def remove_dead_videos(self, dry_run: bool = False) -> list[CurationAction]:
+    def remove_dead_videos(self, dry_run: bool = True) -> list[CurationAction]:
         """Remove all dead/private/blocked videos from their playlists."""
         db = self._db()
         dead = db.execute(
@@ -279,7 +282,7 @@ class Curator:
         return actions
 
     def deduplicate_playlist(self, playlist_id: str,
-                              dry_run: bool = False) -> list[CurationAction]:
+                              dry_run: bool = True) -> list[CurationAction]:
         """Remove duplicate videos *within* a single playlist.
 
         Keeps the first occurrence (lowest position), removes later ones.
